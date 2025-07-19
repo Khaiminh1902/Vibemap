@@ -1,7 +1,15 @@
-import React from "react";
+"use client";
 
-const page = () => {
-  return <div>page</div>;
-};
+import dynamic from "next/dynamic";
 
-export default page;
+const Map = dynamic(() => import("./components/Map"), {
+  ssr: false,
+});
+
+export default function Page() {
+  return (
+    <div className="map-page">
+      <Map />
+    </div>
+  );
+}
