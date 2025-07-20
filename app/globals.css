@@ -12,3 +12,26 @@ body {
   height: 100vh;
   width: 100vw;
 }
+
+.leaflet-container.custom-cursor,
+.leaflet-container.custom-cursor * {
+  cursor:
+    url("/pin-cursor.png") 10 10,
+    pointer !important;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.marquee-text {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee 10s linear infinite;
+  min-width: 100%;
+}
