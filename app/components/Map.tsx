@@ -284,7 +284,7 @@ export default function Map() {
                             setShowEmojiDropdown((prev) => !prev);
                             setEmojiDropdownForVibe(vibe._id);
                           }}
-                          className="w-11 h-11 rounded-full border-2 border-dashed border-gray-400 bg-white hover:bg-gray-100 flex items-center justify-center text-gray-600 text-xl"
+                          className="w-11 h-11 rounded-full border-2 border-dashed border-gray-400 bg-white hover:bg-gray-100 flex items-center justify-center text-gray-600 text-xl cursor-pointer"
                           title="Add custom emoji"
                         >
                           <Plus />
