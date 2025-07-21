@@ -13,6 +13,7 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as addCustomEmoji from "../addCustomEmoji.js";
 import type * as reactions from "../reactions.js";
 import type * as vibes from "../vibes.js";
 
@@ -25,6 +26,7 @@ import type * as vibes from "../vibes.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  addCustomEmoji: typeof addCustomEmoji;
   reactions: typeof reactions;
   vibes: typeof vibes;
 }>;

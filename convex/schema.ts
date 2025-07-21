@@ -9,6 +9,7 @@ export default defineSchema({
     message: v.string(),
     createdAt: v.int64(),
     mediaUrl: v.optional(v.string()),
+    customEmojis: v.optional(v.array(v.string())),
   }),
   reactions: defineTable({
     vibeId: v.id("vibes"),

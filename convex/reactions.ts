@@ -1,6 +1,8 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
+export { addCustomEmoji } from "./addCustomEmoji";
+
 export const toggleReaction = mutation({
   args: {
     vibeId: v.id("vibes"),

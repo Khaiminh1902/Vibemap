@@ -14,13 +14,18 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import VibeModal from "./VibeModal";
 import HelpModal from "./HelpModal";
-import { Lightbulb } from "lucide-react";
+import { Lightbulb, Plus } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import SearchBar from "./SearchBar";
 import Image from "next/image";
 import ZoomModal from "./ZoomModal";
+import dynamic from "next/dynamic";
+import DraggableWrapper from "./DraggableWrapper";
+import { Id } from "../../convex/_generated/dataModel";
+
+const Picker = dynamic(() => import("@emoji-mart/react"), { ssr: false });
 
 const center: [number, number] = [20, 0];
 
@@ -60,9 +65,18 @@ export default function Map() {
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [highlightedPinId, setHighlightedPinId] = useState<string | null>(null);
   const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
+  const [showEmojiDropdown, setShowEmojiDropdown] = useState(false);
+  const [emojiDropdownForVibe, setEmojiDropdownForVibe] = useState<
+    string | null
+  >(null);
+  const [customEmojisByVibe, setCustomEmojisByVibe] = useState<
+    Record<string, string[]>
+  >({});
 
   const addVibe = useMutation(api.vibes.addVibe);
   const toggleReaction = useMutation(api.reactions.toggleReaction);
+  const addCustomEmoji = useMutation(api.vibes.addCustomEmoji);
+
   const vibes = useQuery(api.vibes.getVibes);
   const allReactions = useQuery(api.reactions.getAllReactions) || [];
 
@@ -94,7 +108,30 @@ export default function Map() {
   };
 
   const deviceId = getDeviceId();
-  const emojiOptions = ["❤️", "👍", "😭", "😂", "😮"];
+  const staticEmojis = ["❤️", "👍", "😭", "😂", "😮"];
+
+  const handleAddCustomEmoji = async (
+    emoji: { native: string },
+    vibeId: Id<"vibes">
+  ) => {
+    const selectedEmoji = emoji?.native;
+    if (!selectedEmoji) return;
+
+    const currentCustomEmojis = customEmojisByVibe[vibeId] || [];
+    if (currentCustomEmojis.includes(selectedEmoji)) return;
+
+    setCustomEmojisByVibe((prev) => ({
+      ...prev,
+      [vibeId]: [...currentCustomEmojis, selectedEmoji],
+    }));
+
+    await addCustomEmoji({
+      vibeId,
+      emoji: selectedEmoji,
+    });
+
+    setShowEmojiDropdown(false);
+  };
 
   return (
     <div className="relative">
@@ -122,11 +159,8 @@ export default function Map() {
         zoom={3}
         minZoom={3}
         maxZoom={12}
-        style={{
-          height: "100vh",
-          width: "100vw",
-          cursor: pinningMode ? "url('/pin-cursor.png'), pointer" : "auto",
-        }}
+        style={{ height: "100vh", width: "100vw" }}
+        className="cursor-default"
         maxBounds={[
           [-85, -180],
           [85, 180],
@@ -153,11 +187,15 @@ export default function Map() {
             const vibeReactions = allReactions.filter(
               (r) => r.vibeId === vibe._id
             );
-
+            const emojiOptions = [
+              ...staticEmojis,
+              ...(vibe.customEmojis ?? []),
+            ];
             const reactionCounts = emojiOptions.reduce(
               (acc, emoji) => {
-                acc[emoji] =
-                  vibeReactions.filter((r) => r.emoji === emoji).length || 0;
+                acc[emoji] = vibeReactions.filter(
+                  (r) => r.emoji === emoji
+                ).length;
                 return acc;
               },
               {} as Record<string, number>
@@ -182,7 +220,7 @@ export default function Map() {
                     if (ref) popupRefs.current[vibe._id] = ref;
                   }}
                 >
-                  <div className="space-y-2 text-sm">
+                  <div className="space-y-2 text-sm w-[300px]">
                     <div>
                       <strong>{vibe.name}</strong>
                       <p>{vibe.message}</p>
@@ -201,11 +239,9 @@ export default function Map() {
                               width={400}
                               height={300}
                               className="w-full h-auto rounded-md cursor-zoom-in"
-                              onClick={() => {
-                                if (vibe.mediaUrl) {
-                                  setZoomImageUrl(vibe.mediaUrl);
-                                }
-                              }}
+                              onClick={() =>
+                                vibe.mediaUrl && setZoomImageUrl(vibe.mediaUrl)
+                              }
                             />
                           )}
                         </div>
@@ -214,7 +250,8 @@ export default function Map() {
                         {new Date(Number(vibe.createdAt)).toLocaleString()}
                       </p>
                     </div>
-                    <div className="flex space-x-3 pt-2">
+
+                    <div className="relative pt-2 flex flex-wrap gap-2">
                       {emojiOptions.map((emoji) => (
                         <button
                           key={emoji}
@@ -230,18 +267,43 @@ export default function Map() {
                               currentReaction === emoji
                                 ? "border-blue-500 bg-blue-100 shadow-lg"
                                 : "border-gray-300 bg-white hover:bg-gray-100"
-                            }
-                            focus:outline-none focus:ring-2 focus:ring-blue-400`}
-                          aria-label={`React with ${emoji}`}
+                            }`}
                         >
                           <span>{emoji}</span>
                           {reactionCounts[emoji] > 0 && (
-                            <span className="absolute -top-1.5 -right-1.5 bg-blue-500 text-white text-xs rounded-full px-1.5 py-0.5 shadow">
+                            <span className="cursor-pointer absolute -top-1.5 -right-1.5 bg-blue-500 text-white text-xs rounded-full px-1.5 py-0.5 shadow">
                               {reactionCounts[emoji]}
                             </span>
                           )}
                         </button>
                       ))}
+
+                      <div className="relative">
+                        <button
+                          onClick={() => {
+                            setShowEmojiDropdown((prev) => !prev);
+                            setEmojiDropdownForVibe(vibe._id);
+                          }}
+                          className="w-11 h-11 rounded-full border-2 border-dashed border-gray-400 bg-white hover:bg-gray-100 flex items-center justify-center text-gray-600 text-xl"
+                          title="Add custom emoji"
+                        >
+                          <Plus />
+                        </button>
+
+                        {showEmojiDropdown &&
+                          emojiDropdownForVibe === vibe._id && (
+                            <DraggableWrapper>
+                              <Picker
+                                onEmojiSelect={(emoji: { native: string }) =>
+                                  handleAddCustomEmoji(emoji, vibe._id)
+                                }
+                                theme="light"
+                                previewPosition="none"
+                                skinTonePosition="none"
+                              />
+                            </DraggableWrapper>
+                          )}
+                      </div>
                     </div>
                   </div>
                 </Popup>

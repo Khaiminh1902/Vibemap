@@ -57,3 +57,21 @@ body {
 .marker-bounce {
   animation: bounce 1s ease;
 }
+
+/* Force Leaflet map layers to use cursor-default */
+.leaflet-container,
+.leaflet-interactive,
+.leaflet-popup,
+.leaflet-pane,
+.leaflet-tile,
+.leaflet-layer,
+.leaflet-map-pane,
+.leaflet-overlay-pane {
+  cursor: default !important;
+}
+
+/* Force markers to show pointer cursor */
+.leaflet-marker-icon,
+.leaflet-div-icon {
+  cursor: pointer !important;
+}
