@@ -37,6 +37,17 @@ function MapClickHandler({
   return null;
 }
 
+function getDeviceId() {
+  const key = "vibe-device-id";
+  if (typeof window === "undefined") return "";
+  let id = localStorage.getItem(key);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(key, id);
+  }
+  return id;
+}
+
 export default function Map() {
   const [pinningMode, setPinningMode] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -47,7 +58,9 @@ export default function Map() {
   const [highlightedPinId, setHighlightedPinId] = useState<string | null>(null);
 
   const addVibe = useMutation(api.vibes.addVibe);
+  const toggleReaction = useMutation(api.reactions.toggleReaction);
   const vibes = useQuery(api.vibes.getVibes);
+  const allReactions = useQuery(api.reactions.getAllReactions) || [];
 
   const mapRef = useRef<L.Map>(null);
   const popupRefs = useRef<Record<string, L.Popup>>({});
@@ -73,6 +86,9 @@ export default function Map() {
     setShowModal(false);
     setPinPosition(null);
   };
+
+  const deviceId = getDeviceId();
+  const emojiOptions = ["❤️", "👍", "😭", "😂", "😮"];
 
   return (
     <div className="relative">
@@ -127,33 +143,81 @@ export default function Map() {
         />
 
         {vibes &&
-          vibes.map((vibe) => (
-            <Marker
-              key={vibe._id}
-              position={[vibe.lat, vibe.lng]}
-              icon={L.icon({
-                iconUrl: "/pin-cursor.png",
-                iconSize: [20, 20],
-                iconAnchor: [10, 20],
-              })}
-            >
-              <Popup
-                ref={(ref) => {
-                  if (ref) popupRefs.current[vibe._id] = ref;
-                }}
+          vibes.map((vibe) => {
+            const vibeReactions = allReactions.filter(
+              (r) => r.vibeId === vibe._id
+            );
+
+            const reactionCounts = emojiOptions.reduce(
+              (acc, emoji) => {
+                acc[emoji] =
+                  vibeReactions.filter((r) => r.emoji === emoji).length || 0;
+                return acc;
+              },
+              {} as Record<string, number>
+            );
+
+            const currentReaction = vibeReactions.find(
+              (r) => r.deviceId === deviceId
+            )?.emoji;
+
+            return (
+              <Marker
+                key={vibe._id}
+                position={[vibe.lat, vibe.lng]}
+                icon={L.icon({
+                  iconUrl: "/pin-cursor.png",
+                  iconSize: [20, 20],
+                  iconAnchor: [10, 20],
+                })}
               >
-                <div className="space-y-2 text-sm">
-                  <div>
-                    <strong>{vibe.name}</strong>
-                    <p>{vibe.message}</p>
-                    <p className="text-xs text-gray-500">
-                      {new Date(Number(vibe.createdAt)).toLocaleString()}
-                    </p>
+                <Popup
+                  ref={(ref) => {
+                    if (ref) popupRefs.current[vibe._id] = ref;
+                  }}
+                >
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <strong>{vibe.name}</strong>
+                      <p>{vibe.message}</p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(Number(vibe.createdAt)).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="flex space-x-3 pt-2">
+                      {emojiOptions.map((emoji) => (
+                        <button
+                          key={emoji}
+                          onClick={() =>
+                            toggleReaction({
+                              vibeId: vibe._id,
+                              emoji,
+                              deviceId,
+                            })
+                          }
+                          className={`relative flex items-center justify-center w-11 h-11 rounded-full text-2xl font-bold border-2 transition cursor-pointer
+                            ${
+                              currentReaction === emoji
+                                ? "border-blue-500 bg-blue-100 shadow-lg"
+                                : "border-gray-300 bg-white hover:bg-gray-100"
+                            }
+                            focus:outline-none focus:ring-2 focus:ring-blue-400`}
+                          aria-label={`React with ${emoji}`}
+                        >
+                          <span>{emoji}</span>
+                          {reactionCounts[emoji] > 0 && (
+                            <span className="absolute -top-1.5 -right-1.5 bg-blue-500 text-white text-xs rounded-full px-1.5 py-0.5 shadow">
+                              {reactionCounts[emoji]}
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
+                </Popup>
+              </Marker>
+            );
+          })}
       </MapContainer>
 
       <div className="absolute top-4 right-4 z-[1000] flex flex-col items-end space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
@@ -163,7 +227,6 @@ export default function Map() {
           popupRefs={popupRefs}
           onHighlight={setHighlightedPinId}
         />
-
         <button
           onClick={() => setPinningMode(!pinningMode)}
           className={`px-4 py-2 rounded-xl text-white font-semibold shadow-lg transition cursor-pointer ${

@@ -9,4 +9,10 @@ export default defineSchema({
     message: v.string(),
     createdAt: v.int64(),
   }),
+  reactions: defineTable({
+    vibeId: v.id("vibes"),
+    emoji: v.string(),
+    deviceId: v.string(),
+    reactedAt: v.int64(),
+  }).index("byVibe", ["vibeId"]),
 });
