@@ -35,3 +35,25 @@ body {
   animation: marquee 10s linear infinite;
   min-width: 100%;
 }
+
+@keyframes bounce {
+  0% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-15px);
+  }
+  50% {
+    transform: translateY(0);
+  }
+  70% {
+    transform: translateY(-7px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.marker-bounce {
+  animation: bounce 1s ease;
+}
