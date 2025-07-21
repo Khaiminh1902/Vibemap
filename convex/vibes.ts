@@ -7,6 +7,7 @@ export const addVibe = mutation({
     message: v.string(),
     lat: v.float64(),
     lng: v.float64(),
+    mediaUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await ctx.db.insert("vibes", {

@@ -8,6 +8,7 @@ export default defineSchema({
     name: v.string(),
     message: v.string(),
     createdAt: v.int64(),
+    mediaUrl: v.optional(v.string()),
   }),
   reactions: defineTable({
     vibeId: v.id("vibes"),

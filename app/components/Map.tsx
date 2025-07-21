@@ -19,6 +19,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import SearchBar from "./SearchBar";
+import Image from "next/image";
+import ZoomModal from "./ZoomModal";
 
 const center: [number, number] = [20, 0];
 
@@ -54,8 +56,10 @@ export default function Map() {
   const [pinPosition, setPinPosition] = useState<L.LatLng | null>(null);
   const [vibeName, setVibeName] = useState("");
   const [message, setMessage] = useState("");
+  const [mediaUrl, setMediaUrl] = useState("");
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [highlightedPinId, setHighlightedPinId] = useState<string | null>(null);
+  const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
 
   const addVibe = useMutation(api.vibes.addVibe);
   const toggleReaction = useMutation(api.reactions.toggleReaction);
@@ -78,11 +82,13 @@ export default function Map() {
         lng: pinPosition.lng,
         name: vibeName,
         message: message,
+        mediaUrl: mediaUrl || undefined,
       });
     }
 
     setVibeName("");
     setMessage("");
+    setMediaUrl("");
     setShowModal(false);
     setPinPosition(null);
   };
@@ -180,6 +186,30 @@ export default function Map() {
                     <div>
                       <strong>{vibe.name}</strong>
                       <p>{vibe.message}</p>
+                      {vibe.mediaUrl && (
+                        <div className="mt-2">
+                          {vibe.mediaUrl.includes("video") ? (
+                            <video
+                              src={vibe.mediaUrl}
+                              controls
+                              className="w-full rounded-md"
+                            />
+                          ) : (
+                            <Image
+                              src={vibe.mediaUrl}
+                              alt="Uploaded"
+                              width={400}
+                              height={300}
+                              className="w-full h-auto rounded-md cursor-zoom-in"
+                              onClick={() => {
+                                if (vibe.mediaUrl) {
+                                  setZoomImageUrl(vibe.mediaUrl);
+                                }
+                              }}
+                            />
+                          )}
+                        </div>
+                      )}
                       <p className="text-xs text-gray-500">
                         {new Date(Number(vibe.createdAt)).toLocaleString()}
                       </p>
@@ -252,14 +282,25 @@ export default function Map() {
         show={showModal}
         name={vibeName}
         message={message}
+        mediaUrl={mediaUrl}
         onNameChange={setVibeName}
         onMessageChange={setMessage}
+        onMediaUrlChange={setMediaUrl}
         onSubmit={handleModalSubmit}
         onCancel={() => {
           setShowModal(false);
           setPinPosition(null);
+          setMediaUrl("");
         }}
       />
+
+      {zoomImageUrl && (
+        <ZoomModal
+          src={zoomImageUrl}
+          alt="Zoomed"
+          onClose={() => setZoomImageUrl(null)}
+        />
+      )}
     </div>
   );
 }
