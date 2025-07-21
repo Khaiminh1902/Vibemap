@@ -15,6 +15,8 @@ import VibeModal from "./VibeModal";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { AnimatePresence, motion } from "framer-motion";
+import HelpModal from "./HelpModal";
+import { Lightbulb } from "lucide-react";
 
 const center: [number, number] = [20, 0];
 
@@ -40,7 +42,7 @@ export default function Map() {
   const [vibeName, setVibeName] = useState("");
   const [vibeMood, setVibeMood] = useState("");
   const [message, setMessage] = useState("");
-
+  const [showHelpModal, setShowHelpModal] = useState(false);
   const addVibe = useMutation(api.vibes.addVibe);
   const vibes = useQuery(api.vibes.getVibes);
   const mapRef = useRef<L.Map>(null);
@@ -133,7 +135,6 @@ export default function Map() {
           </motion.div>
         )}
       </AnimatePresence>
-
       <MapContainer
         center={center}
         zoom={3}
@@ -185,7 +186,6 @@ export default function Map() {
             </Marker>
           ))}
       </MapContainer>
-
       <div className="absolute top-4 right-4 z-[1000] flex flex-col items-end space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
         <form onSubmit={handleSearch} className="flex items-center space-x-2">
           <input
@@ -214,6 +214,14 @@ export default function Map() {
         </button>
       </div>
 
+      <button
+        onClick={() => setShowHelpModal(true)}
+        className=" cursor-pointer fixed bottom-6 right-6 z-[1200] bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-full shadow-lg transition flex items-center space-x-2"
+      >
+        <Lightbulb size={20} />
+        <span className="hidden sm:inline">Suggest</span>
+      </button>
+      <HelpModal show={showHelpModal} onClose={() => setShowHelpModal(false)} />
       <VibeModal
         show={showModal}
         name={vibeName}
