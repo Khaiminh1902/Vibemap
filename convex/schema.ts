@@ -17,4 +17,10 @@ export default defineSchema({
     deviceId: v.string(),
     reactedAt: v.int64(),
   }).index("byVibe", ["vibeId"]),
+  comments: defineTable({
+    vibeId: v.id("vibes"),
+    name: v.string(),
+    text: v.string(),
+    createdAt: v.number(),
+  }).index("byVibe", ["vibeId"]),
 });

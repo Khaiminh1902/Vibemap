@@ -40,3 +40,33 @@ export const addCustomEmoji = mutation({
     });
   },
 });
+
+export const addComment = mutation({
+  args: {
+    vibeId: v.id("vibes"),
+    name: v.string(),
+    message: v.string(),
+  },
+  handler: async (ctx, { vibeId, name, message }) => {
+    const vibe = await ctx.db.get(vibeId);
+    if (!vibe) throw new Error("Vibe not found");
+
+    await ctx.db.insert("comments", {
+      vibeId,
+      name,
+      message,
+      createdAt: BigInt(Date.now()),
+    });
+  },
+});
+
+export const getCommentsByVibe = query({
+  args: { vibeId: v.id("vibes") },
+  handler: async (ctx, { vibeId }) => {
+    return await ctx.db
+      .query("comments")
+      .withIndex("byVibe", (q) => q.eq("vibeId", vibeId))
+      .order("desc")
+      .collect();
+  },
+});

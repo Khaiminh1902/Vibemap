@@ -20,5 +20,3 @@ VibeMap is a world map where users can drop a custom pin to express their curren
 - **Map Library:** Leaflet.js (`react-leaflet`)
 - **Backend:** [Convex](https://convex.dev) (serverless database + functions)
 - **Type Safety:** TypeScript
-
-🗣 Comments (need to enter name and message)

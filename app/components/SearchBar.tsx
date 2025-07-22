@@ -82,7 +82,7 @@ export default function SearchBar({
     const vibe = vibes?.find((v) => v._id === id);
     if (!vibe || !mapRef.current) return;
 
-    mapRef.current.flyTo([vibe.lat, vibe.lng], 12, { duration: 2 });
+    mapRef.current.flyTo([vibe.lat, vibe.lng], 13, { duration: 2 });
     setTimeout(() => {
       const popup = popupRefs.current[id];
       if (popup) popup.openOn(mapRef.current!);
