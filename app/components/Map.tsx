@@ -82,7 +82,6 @@ export default function Map() {
 
   const vibes = useQuery(api.vibes.getVibes);
   const allReactions = useQuery(api.reactions.getAllReactions) || [];
-
   const mapRef = useRef<L.Map>(null);
   const popupRefs = useRef<Record<string, L.Popup>>({});
 
@@ -91,6 +90,15 @@ export default function Map() {
     setShowModal(true);
     setPinningMode(false);
   };
+
+  const [mapTheme, setMapTheme] = useState<"voyager" | "light">(() => {
+    if (typeof window !== "undefined") {
+      return (
+        (localStorage.getItem("map-theme") as "voyager" | "light") || "voyager"
+      );
+    }
+    return "voyager";
+  });
 
   const handleModalSubmit = async () => {
     if (pinPosition) {
@@ -136,6 +144,12 @@ export default function Map() {
     setShowEmojiDropdown(false);
   };
 
+  const switchMapTheme = () => {
+    const nextTheme = mapTheme === "voyager" ? "light" : "voyager";
+    setMapTheme(nextTheme);
+    localStorage.setItem("map-theme", nextTheme);
+  };
+
   return (
     <div className="relative">
       <AnimatePresence>
@@ -175,10 +189,15 @@ export default function Map() {
         attributionControl={false}
       >
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-          attribution=""
+          url={
+            mapTheme === "light"
+              ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+              : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          }
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           noWrap={true}
         />
+
         <ZoomControl position="topleft" />
         <MapClickHandler
           pinningMode={pinningMode}
@@ -223,7 +242,7 @@ export default function Map() {
                     if (ref) popupRefs.current[vibe._id] = ref;
                   }}
                 >
-                  <div className="w-[321px] pt-3">
+                  <div className="w-[321px] pt-3 rounded-md ">
                     <div className="max-h-[400px] overflow-y-auto pr-2 pl-1 space-y-2 text-sm">
                       <div>
                         <strong>{vibe.name}</strong>
@@ -251,7 +270,7 @@ export default function Map() {
                             )}
                           </div>
                         )}
-                        <p className="text-xs text-gray-500">
+                        <p className="text-gray-500">
                           {new Date(Number(vibe.createdAt)).toLocaleString()}
                         </p>
                       </div>
@@ -268,11 +287,11 @@ export default function Map() {
                               })
                             }
                             className={`relative flex items-center justify-center w-11 h-11 rounded-full text-2xl font-bold border-2 transition cursor-pointer
-              ${
-                currentReaction === emoji
-                  ? "border-blue-500 bg-blue-100 shadow-lg"
-                  : "border-gray-300 bg-white hover:bg-gray-100"
-              }`}
+  ${
+    currentReaction === emoji
+      ? "border-blue-500 bg-blue-100 shadow-lg"
+      : "border-gray-300 bg-white hover:bg-gray-100"
+  }`}
                           >
                             <span>{emoji}</span>
                             {reactionCounts[emoji] > 0 && (
@@ -289,7 +308,9 @@ export default function Map() {
                               setShowEmojiDropdown((prev) => !prev);
                               setEmojiDropdownForVibe(vibe._id);
                             }}
-                            className="w-11 h-11 rounded-full border-2 border-dashed border-gray-400 bg-white hover:bg-gray-100 flex items-center justify-center text-gray-600 text-xl cursor-pointer"
+                            className="w-11 h-11 rounded-full border-2 border-dashed
+                              border-gray-400 bg-white hover:bg-gray-100 text-gray-600
+                             flex items-center justify-center text-xl cursor-pointer"
                             title="Add custom emoji"
                           >
                             <Plus />
@@ -349,6 +370,13 @@ export default function Map() {
       </button>
 
       <HelpModal show={showHelpModal} onClose={() => setShowHelpModal(false)} />
+      <button
+        onClick={switchMapTheme}
+        className="cursor-pointer fixed bottom-[90px] right-6 z-[1200] bg-gray-800 hover:bg-gray-900 text-white px-4 py-3 rounded-full shadow-lg transition"
+      >
+        Theme: {mapTheme.charAt(0).toUpperCase() + mapTheme.slice(1)}
+      </button>
+
       <VibeModal
         show={showModal}
         name={vibeName}
