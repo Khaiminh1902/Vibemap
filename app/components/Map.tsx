@@ -78,8 +78,6 @@ export default function Map() {
   const addVibe = useMutation(api.vibes.addVibe);
   const toggleReaction = useMutation(api.reactions.toggleReaction);
   const addCustomEmoji = useMutation(api.vibes.addCustomEmoji);
-  // Remove or update this line, as comments should be fetched per-vibe using the correct argument.
-  // Example: const comments = useQuery(api.comments.getComments, { vibeId: someVibeId }) || [];
   const addComment = useMutation(api.comments.addComment);
 
   const vibes = useQuery(api.vibes.getVibes);

@@ -1,4 +1,3 @@
-// convex/reactions/addCustomEmoji.ts
 import { mutation } from "@/convex/_generated/server";
 import { v } from "convex/values";
 
