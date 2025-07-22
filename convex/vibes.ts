@@ -54,8 +54,8 @@ export const addComment = mutation({
     await ctx.db.insert("comments", {
       vibeId,
       name,
-      message,
-      createdAt: BigInt(Date.now()),
+      text: message,
+      createdAt: Date.now(),
     });
   },
 });
