@@ -322,6 +322,7 @@ export default function Map() {
             );
           })}
       </MapContainer>
+
       <div className="absolute top-4 right-4 z-[1000] flex flex-col items-end space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
         <SearchBar
           vibes={vibes}
