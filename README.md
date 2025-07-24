@@ -45,6 +45,4 @@ VibeMap lets users drop custom pins anywhere on the map to express their current
 
 ---
 
-## 📄 License
-
-This project is licensed under the MIT License. See the LICENSE file for more details.
+This project is created for Summer of Making 2025 - Hackclub
